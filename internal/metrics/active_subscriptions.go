@@ -1,6 +1,7 @@
 package metrics
 
 import (
+  "sync"
   "github.com/prometheus/client_golang/prometheus"
 )
 
@@ -11,11 +12,13 @@ var (
   }, []string{"product"})
 )
 
-func UpdateActiveSubscriptions(usersPerProduct map[string]int) {
+func UpdateActiveSubscriptions(usersPerProduct sync.Map) {
 
-  for product, users := range usersPerProduct {
+  usersPerProduct.Range(func (key, value interface{}) bool {
     ActiveSubscriptionsForProduct.With(prometheus.Labels{
-      "product": product,
-    }).Set(float64(users))
-  }
+      "product": key.(string),
+    }).Set(float64(value.(int)))
+
+    return true
+  })
 }

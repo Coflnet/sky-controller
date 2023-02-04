@@ -21,7 +21,7 @@ type ActiveSubscriptionsWatcher struct {
   ProductUpdateInterval time.Duration
 
   Slugs []string
-  UsersPerSlug map[string]int
+  UsersPerSlug sync.Map
 }
 
 func (w *ActiveSubscriptionsWatcher) Start() {
@@ -91,7 +91,8 @@ func (w *ActiveSubscriptionsWatcher) update() error {
 
   sem := make(chan int, 10)
   wg := sync.WaitGroup{}
-  w.UsersPerSlug = make(map[string]int)
+  w.UsersPerSlug = sync.Map{}
+  i := 0
 
   for _, slug := range w.Slugs {
 
@@ -109,13 +110,15 @@ func (w *ActiveSubscriptionsWatcher) update() error {
         log.Error().Err(err).Msgf("Error while updating active users for %s", slug)
       }
 
-      w.UsersPerSlug[slug] = int(count)
+      w.UsersPerSlug.Store(slug, count)
+      i++
     }(slug)
   }
 
   wg.Wait()
   metrics.UpdateActiveSubscriptions(w.UsersPerSlug)
-  log.Info().Msgf("Updated active subscriptions: %d", len(w.UsersPerSlug))
+
+  log.Info().Msgf("Updated active subscriptions: %d", i)
 
   return nil
 }
