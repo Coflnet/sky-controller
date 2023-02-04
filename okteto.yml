@@ -1,0 +1,19 @@
+name: sky-controller
+autocreate: true
+namespace: dev
+image: registry.suse.com/bci/golang:1.19
+serviceAccount: proxy-dev
+command: bash
+securityContext:
+  capabilities:
+    add:
+    - SYS_PTRACE
+sync:
+- .:/usr/src/app
+forward:
+- 8080:8080
+workdir: /usr/src/app
+environment:
+  PROXY_BASE_URL: http://sky-proxy.sky:8000
+persistentVolume: 
+  enabled: false

@@ -1,0 +1,693 @@
+openapi: 3.0.1
+info:
+  title: SkyProxy
+  version: v1
+paths:
+  /Api/time:
+    get:
+      tags:
+        - Api
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+                format: date-time
+            application/json:
+              schema:
+                type: string
+                format: date-time
+            text/json:
+              schema:
+                type: string
+                format: date-time
+  /skyblock/auctions:
+    get:
+      tags:
+        - Api
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+            text/json:
+              schema:
+                type: string
+    post:
+      tags:
+        - Api
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+            text/json:
+              schema:
+                type: string
+  '/Base/ah/{playerId}':
+    post:
+      tags:
+        - Base
+      summary: Request ah update for a player
+      parameters:
+        - name: playerId
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+  /Base/key:
+    post:
+      tags:
+        - Base
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyCreate'
+          text/json:
+            schema:
+              $ref: '#/components/schemas/KeyCreate'
+          application/*+json:
+            schema:
+              $ref: '#/components/schemas/KeyCreate'
+      responses:
+        '200':
+          description: Success
+  '/Base/keys/{party}/count':
+    get:
+      tags:
+        - Base
+      parameters:
+        - name: party
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: integer
+                format: int32
+            application/json:
+              schema:
+                type: integer
+                format: int32
+            text/json:
+              schema:
+                type: integer
+                format: int32
+  /Proxy/hypixel:
+    get:
+      tags:
+        - Proxy
+      summary: Proxy the path to hypixel using the assigned key (no key required)
+      parameters:
+        - name: path
+          in: query
+          description: ''
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+            text/json:
+              schema:
+                type: string
+  '/Proxy/hypixel/ah/player/{playerUuid}':
+    get:
+      tags:
+        - Proxy
+      summary: Load the auctions of a player
+      parameters:
+        - name: playerUuid
+          in: path
+          description: ''
+          required: true
+          schema:
+            type: string
+        - name: maxAgeSeconds
+          in: query
+          description: 'prefilter auctions to end in the future or less than x seconds ago, 0 is no limit (default)'
+          schema:
+            type: integer
+            format: int32
+            default: 0
+        - name: hintOwner
+          in: query
+          description: Identifer for whoever provided the hint
+          schema:
+            type: string
+            default: xReborn
+      responses:
+        '200':
+          description: Success
+          content:
+            text/plain:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaveAuction'
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaveAuction'
+            text/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaveAuction'
+  /Proxy/hypixel/status:
+    get:
+      tags:
+        - Proxy
+      summary: Can proxy anything
+      responses:
+        '200':
+          description: Success
+components:
+  schemas:
+    Category:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+      type: integer
+      format: int32
+    Enchantment:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        type:
+          $ref: '#/components/schemas/EnchantmentType'
+        level:
+          type: integer
+          format: int32
+        itemType:
+          type: integer
+          format: int32
+        saveAuctionId:
+          type: integer
+          format: int32
+      additionalProperties: false
+    EnchantmentType:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+        - 18
+        - 19
+        - 20
+        - 21
+        - 22
+        - 23
+        - 24
+        - 25
+        - 26
+        - 27
+        - 28
+        - 29
+        - 30
+        - 31
+        - 32
+        - 33
+        - 34
+        - 35
+        - 36
+        - 37
+        - 38
+        - 39
+        - 40
+        - 41
+        - 42
+        - 43
+        - 44
+        - 45
+        - 46
+        - 47
+        - 48
+        - 49
+        - 50
+        - 51
+        - 52
+        - 53
+        - 54
+        - 55
+        - 56
+        - 57
+        - 58
+        - 60
+        - 61
+        - 62
+        - 63
+        - 64
+        - 65
+        - 66
+        - 67
+        - 68
+        - 69
+        - 70
+        - 71
+        - 72
+        - 73
+        - 74
+        - 75
+        - 76
+        - 77
+        - 78
+        - 79
+        - 80
+        - 81
+        - 82
+        - 83
+        - 84
+        - 85
+        - 86
+        - 87
+        - 88
+        - 89
+        - 90
+        - 91
+        - 92
+        - 93
+        - 94
+        - 95
+        - 96
+        - 97
+        - 98
+        - 99
+        - 100
+        - 101
+        - 102
+        - 103
+        - 104
+        - 105
+        - 106
+        - 107
+        - 108
+        - 109
+        - 110
+        - 111
+        - 112
+        - 113
+        - 114
+        - 115
+        - 116
+        - 117
+        - 118
+        - 119
+        - 120
+        - 121
+        - 122
+        - 123
+        - 126
+      type: integer
+      format: int32
+    KeyCreate:
+      type: object
+      properties:
+        party:
+          type: string
+          nullable: true
+        key:
+          type: string
+          nullable: true
+        owner:
+          type: string
+          nullable: true
+      additionalProperties: false
+    NbtData:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        data:
+          type: object
+          additionalProperties: { }
+          nullable: true
+          readOnly: true
+      additionalProperties: false
+    NBTLookup:
+      type: object
+      properties:
+        auctionId:
+          type: integer
+          format: int32
+        keyId:
+          type: integer
+          format: int32
+        value:
+          type: integer
+          format: int64
+      additionalProperties: false
+    Reforge:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+        - 10
+        - 11
+        - 12
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+        - 18
+        - 19
+        - 20
+        - 21
+        - 22
+        - 23
+        - 24
+        - 25
+        - 26
+        - 27
+        - 28
+        - 29
+        - 30
+        - 31
+        - 32
+        - 33
+        - 34
+        - 35
+        - 36
+        - 37
+        - 38
+        - 39
+        - 40
+        - 41
+        - 42
+        - 43
+        - 44
+        - 45
+        - 46
+        - 47
+        - 48
+        - 49
+        - 50
+        - 51
+        - 52
+        - 53
+        - 54
+        - 55
+        - 56
+        - 57
+        - 58
+        - 59
+        - 60
+        - 61
+        - 62
+        - 63
+        - 64
+        - 65
+        - 66
+        - 67
+        - 68
+        - 69
+        - 70
+        - 71
+        - 72
+        - 73
+        - 74
+        - 75
+        - 76
+        - 77
+        - 78
+        - 79
+        - 80
+        - 81
+        - 82
+        - 83
+        - 84
+        - 85
+        - 86
+        - 87
+        - 88
+        - 89
+        - 90
+        - 91
+        - 92
+        - 93
+        - 94
+        - 95
+        - 96
+        - 97
+        - 98
+        - 99
+        - 100
+        - 101
+        - 102
+        - 103
+        - 104
+        - 105
+        - 106
+        - 107
+        - 108
+        - 109
+        - 110
+        - 111
+        - 112
+        - 113
+        - 114
+        - 115
+        - 116
+        - 117
+        - 118
+        - 119
+        - 120
+        - 125
+        - 126
+      type: integer
+      format: int32
+    SaveAuction:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        uuid:
+          type: string
+          nullable: true
+        claimed:
+          type: boolean
+        count:
+          type: integer
+          format: int32
+        startingBid:
+          type: integer
+          format: int64
+        oldTier:
+          type: string
+          nullable: true
+          writeOnly: true
+        oldCategory:
+          type: string
+          nullable: true
+          writeOnly: true
+        tag:
+          maxLength: 40
+          type: string
+          nullable: true
+        itemName:
+          maxLength: 45
+          type: string
+          nullable: true
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        auctioneerId:
+          type: string
+          nullable: true
+        profileId:
+          type: string
+          nullable: true
+        coop:
+          type: array
+          items:
+            type: string
+          nullable: true
+          writeOnly: true
+        coopMembers:
+          type: array
+          items:
+            $ref: '#/components/schemas/UuId'
+          nullable: true
+        claimedBidders:
+          type: array
+          items: { }
+          nullable: true
+          writeOnly: true
+        claimedBids:
+          type: array
+          items:
+            $ref: '#/components/schemas/UuId'
+          nullable: true
+        highestBidAmount:
+          type: integer
+          format: int64
+        bids:
+          type: array
+          items:
+            $ref: '#/components/schemas/SaveBids'
+          nullable: true
+        anvilUses:
+          type: integer
+          format: int32
+        enchantments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Enchantment'
+          nullable: true
+        nbtData:
+          $ref: '#/components/schemas/NbtData'
+        itemCreatedAt:
+          type: string
+          format: date-time
+        reforge:
+          $ref: '#/components/schemas/Reforge'
+        category:
+          $ref: '#/components/schemas/Category'
+        tier:
+          $ref: '#/components/schemas/Tier'
+        bin:
+          type: boolean
+        sellerId:
+          type: integer
+          format: int32
+        itemId:
+          type: integer
+          format: int32
+        nbtLookup:
+          type: array
+          items:
+            $ref: '#/components/schemas/NBTLookup'
+          nullable: true
+        flatNbt:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        uId:
+          type: integer
+          format: int64
+        findTime:
+          type: string
+          format: date-time
+        traceContext:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        context:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+      additionalProperties: false
+    SaveBids:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        auction:
+          $ref: '#/components/schemas/SaveAuction'
+        bidder:
+          type: string
+          nullable: true
+        profileId:
+          type: string
+          nullable: true
+        amount:
+          type: integer
+          format: int64
+        timestamp:
+          type: string
+          format: date-time
+        bidderId:
+          type: integer
+          format: int32
+      additionalProperties: false
+    Tier:
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+        - 4
+        - 5
+        - 6
+        - 7
+        - 8
+        - 9
+      type: integer
+      format: int32
+    UuId:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+        value:
+          type: string
+          nullable: true
+      additionalProperties: false
