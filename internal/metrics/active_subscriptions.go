@@ -2,7 +2,6 @@ package metrics
 
 import (
   "github.com/prometheus/client_golang/prometheus"
-  "github.com/rs/zerolog/log"
 )
 
 var (
@@ -18,7 +17,5 @@ func UpdateActiveSubscriptions(usersPerProduct map[string]int) {
     ActiveSubscriptionsForProduct.With(prometheus.Labels{
       "product": product,
     }).Set(float64(users))
-
-    log.Info().Msgf("Updated active subscriptions for product %s to %d", product, users)
   }
 }

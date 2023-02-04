@@ -110,12 +110,12 @@ func (w *ActiveSubscriptionsWatcher) update() error {
       }
 
       w.UsersPerSlug[slug] = int(count)
-      log.Info().Msgf("Updated active users for %s: %d", slug, count)
     }(slug)
   }
 
   wg.Wait()
   metrics.UpdateActiveSubscriptions(w.UsersPerSlug)
+  log.Info().Msgf("Updated active subscriptions: %d", len(w.UsersPerSlug))
 
   return nil
 }

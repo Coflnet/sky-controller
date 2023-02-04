@@ -20,7 +20,7 @@ func main() {
   proxyScaler.Start()
 
   activeSubscriptionsWatcher := usecase.ActiveSubscriptionsWatcher{
-    Interval: 15 * time.Second,
+    Interval: 1 * time.Minute,
     ProductUpdateInterval: 1 * time.Hour,
   }
   activeSubscriptionsWatcher.Start()
