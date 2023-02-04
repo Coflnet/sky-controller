@@ -21,3 +21,7 @@ func ProxyBaseURL() string {
 func PaymentBaseURL() string {
   return getEnv("PAYMENTS_BASE_URL")
 }
+
+func TFMUserCountURL() string {
+  return "https://sky.coflnet.com/tfm/backend/online_tfm_users"
+}

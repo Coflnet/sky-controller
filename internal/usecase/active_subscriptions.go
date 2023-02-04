@@ -2,14 +2,17 @@ package usecase
 
 import (
 	"context"
+	"net/http"
+	"sync"
 	"time"
-  "sync"
+  "encoding/json"
 
-	"github.com/Coflnet/sky-controller/internal/utils"
-	"github.com/Coflnet/sky-controller/internal/metrics"
-	api "github.com/Coflnet/sky-controller/target/payment"
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+
+	"github.com/Coflnet/sky-controller/internal/metrics"
+	"github.com/Coflnet/sky-controller/internal/utils"
+	api "github.com/Coflnet/sky-controller/target/payment"
 )
 
 var (
@@ -92,7 +95,6 @@ func (w *ActiveSubscriptionsWatcher) update() error {
   sem := make(chan int, 10)
   wg := sync.WaitGroup{}
   w.UsersPerSlug = sync.Map{}
-  i := 0
 
   for _, slug := range w.Slugs {
 
@@ -111,14 +113,23 @@ func (w *ActiveSubscriptionsWatcher) update() error {
       }
 
       w.UsersPerSlug.Store(slug, count)
-      i++
     }(slug)
   }
+
+  // update tfm user count
+  tfmUserCount, err := w.TFMUserCount()
+  if err != nil {
+    log.Error().Err(err).Msgf("Error while updating tfm user count")
+  } else {
+    log.Debug().Msgf("TFM user count: %d", tfmUserCount)
+    w.UsersPerSlug.Store("tfm", tfmUserCount)
+  }
+
 
   wg.Wait()
   metrics.UpdateActiveSubscriptions(w.UsersPerSlug)
 
-  log.Info().Msgf("Updated active subscriptions: %d", i)
+  log.Debug().Msgf("Updated active subscriptions")
 
   return nil
 }
@@ -133,3 +144,41 @@ func (w *ActiveSubscriptionsWatcher) updateActiveUsersPerProduct(slug string) (i
 
   return count, err
 }
+
+func (w *ActiveSubscriptionsWatcher) TFMUserCount() (int32, error) {
+  ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+  defer cancel()
+
+  // make http get request
+  req, err := http.NewRequestWithContext(ctx, "GET", utils.TFMUserCountURL(), nil)
+  if err != nil {
+    return 0, err
+  }
+
+  resp, err := http.DefaultClient.Do(req)
+
+  if err != nil {
+    return 0, err
+  }
+  defer resp.Body.Close()
+
+  if resp.StatusCode != http.StatusOK {
+    return 0, err
+  }
+
+
+  var tfmResponse TFMResponse
+  err = json.NewDecoder(resp.Body).Decode(&tfmResponse)
+
+  if err != nil {
+    return 0, err
+  }
+
+  return int32(tfmResponse.Users), nil
+}
+
+	
+type TFMResponse struct {
+	Users    int             `json:"users"`
+}
+
