@@ -11,9 +11,10 @@ securityContext:
 sync:
 - .:/usr/src/app
 forward:
-- 8080:8080
+- 2112:2112
 workdir: /usr/src/app
 environment:
   PROXY_BASE_URL: http://sky-proxy.sky:8000
+  PAYMENTS_BASE_URL: http://payments.payment:8000
 persistentVolume: 
   enabled: false

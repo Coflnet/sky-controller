@@ -17,3 +17,7 @@ func getEnv(key string) string {
 func ProxyBaseURL() string {
   return getEnv("PROXY_BASE_URL")
 }
+
+func PaymentBaseURL() string {
+  return getEnv("PAYMENTS_BASE_URL")
+}

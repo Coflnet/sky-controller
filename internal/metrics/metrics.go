@@ -1,9 +1,10 @@
 package metrics
 
 import (
-  "net/http"
+	"net/http"
 
-  "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func Start() {
@@ -11,4 +12,6 @@ func Start() {
     http.Handle("/metrics", promhttp.Handler())
     http.ListenAndServe(":2112", nil)  
   }()
+
+  prometheus.MustRegister(ActiveSubscriptionsForProduct)
 }
