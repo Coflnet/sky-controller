@@ -17,7 +17,7 @@ func UpdateActiveSubscriptions(usersPerProduct sync.Map) {
   usersPerProduct.Range(func (key, value interface{}) bool {
     ActiveSubscriptionsForProduct.With(prometheus.Labels{
       "product": key.(string),
-    }).Set(float64(value.(int)))
+    }).Set(float64(value.(int32)))
 
     return true
   })
