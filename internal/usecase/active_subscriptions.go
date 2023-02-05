@@ -2,13 +2,16 @@ package usecase
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"sync"
 	"time"
-  "encoding/json"
 
 	"github.com/rs/zerolog/log"
 	"github.com/samber/lo"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/attribute"
 
 	"github.com/Coflnet/sky-controller/internal/metrics"
 	"github.com/Coflnet/sky-controller/internal/utils"
@@ -18,6 +21,8 @@ import (
 var (
   paymentClient *api.Client
 )
+
+const subUpdateName = "subscriber_update"
 
 type ActiveSubscriptionsWatcher struct {
   Interval time.Duration
@@ -55,7 +60,7 @@ func (w *ActiveSubscriptionsWatcher) Start() {
 
 func (w *ActiveSubscriptionsWatcher) init() {
   var err error
-  paymentClient, err = api.NewClient(utils.PaymentBaseURL())
+  paymentClient, err = api.NewClient(utils.PaymentBaseURL(), api.WithTracerProvider(otel.GetTracerProvider()))
 
   if err != nil {
     log.Panic().Err(err).Msg("Failed to create payment client")
@@ -63,8 +68,11 @@ func (w *ActiveSubscriptionsWatcher) init() {
 }
 
 func (w *ActiveSubscriptionsWatcher) updateProducts() error {
+
   ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
   defer cancel()
+  _, span := otel.Tracer("active_subscriptions").Start(ctx, "update-products")
+  defer span.End()
 
   products, err := paymentClient.ProductsGet(ctx, api.ProductsGetParams{
     Amount: api.NewOptInt32(100),
@@ -92,6 +100,14 @@ func (w *ActiveSubscriptionsWatcher) update() error {
   // do up to 10 concurrent requests
   // wait for all requests to finish
 
+  ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+  defer cancel()
+
+  var span trace.Span
+  ctx, span = otel.Tracer(subUpdateName).Start(ctx, "update-products")
+  defer span.End()
+
+
   sem := make(chan int, 10)
   wg := sync.WaitGroup{}
   w.UsersPerSlug = sync.Map{}
@@ -101,23 +117,29 @@ func (w *ActiveSubscriptionsWatcher) update() error {
     sem <- 1
     wg.Add(1)
 
-    go func (slug string) {
+    go func (ctx context.Context, slug string) {
+
+      var s trace.Span
+      _, s = otel.Tracer(subUpdateName).Start(ctx, "update-product")
+      s.SetAttributes(attribute.String("slug", slug))
+      defer s.End()
+
       defer func() { 
         <-sem 
         wg.Done()
       }()
 
-      count, err := w.updateActiveUsersPerProduct(slug)
+      count, err := w.updateActiveUsersPerProduct(ctx, slug)
       if err != nil {
         log.Error().Err(err).Msgf("Error while updating active users for %s", slug)
       }
 
       w.UsersPerSlug.Store(slug, count)
-    }(slug)
+    }(ctx, slug)
   }
 
   // update tfm user count
-  tfmUserCount, err := w.TFMUserCount()
+  tfmUserCount, err := w.TFMUserCount(ctx)
   if err != nil {
     log.Error().Err(err).Msgf("Error while updating tfm user count")
   } else {
@@ -134,10 +156,7 @@ func (w *ActiveSubscriptionsWatcher) update() error {
   return nil
 }
 
-func (w *ActiveSubscriptionsWatcher) updateActiveUsersPerProduct(slug string) (int32, error) {
-  ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-  defer cancel()
-
+func (w *ActiveSubscriptionsWatcher) updateActiveUsersPerProduct(ctx context.Context, slug string) (int32, error) {
   count, err := paymentClient.ProductsServiceServiceSlugCountGet(ctx, api.ProductsServiceServiceSlugCountGetParams{
     ServiceSlug: slug,
   })
@@ -145,9 +164,11 @@ func (w *ActiveSubscriptionsWatcher) updateActiveUsersPerProduct(slug string) (i
   return count, err
 }
 
-func (w *ActiveSubscriptionsWatcher) TFMUserCount() (int32, error) {
-  ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
-  defer cancel()
+func (w *ActiveSubscriptionsWatcher) TFMUserCount(ctx context.Context) (int32, error) {
+
+  var span trace.Span
+  ctx, span = otel.Tracer(subUpdateName).Start(ctx, "tfm-user-count")
+  defer span.End()
 
   // make http get request
   req, err := http.NewRequestWithContext(ctx, "GET", utils.TFMUserCountURL(), nil)

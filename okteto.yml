@@ -16,5 +16,10 @@ workdir: /usr/src/app
 environment:
   PROXY_BASE_URL: http://sky-proxy.sky:8000
   PAYMENTS_BASE_URL: http://payments.payment:8000
+  OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: 194.163.170.185
+  OTEL_EXPORTER_OTLP_ENDPOINT: 194.163.170.185
+  JAEGER_AGENT_HOST: 194.163.170.185
+  OTEL_EXPORTER_JAEGER_AGENT_HOST: 194.163.170.185
+  OTEL_SERVICE_NAME: sky-controller
 persistentVolume: 
   enabled: false
