@@ -151,6 +151,9 @@ func (p *ProxyScaler) updateDesiredReplicaCount(ctx context.Context) error {
 		return err
 	}
 
+	// 3 masters, so -3
+	nodeCount -= 3
+
 	count := int(proxyCount)
 	if nodeCount < count {
 		count = nodeCount
