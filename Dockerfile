@@ -1,4 +1,4 @@
-FROM golang:1.19.0-bullseye as builder
+FROM cgr.dev/chainguard/go AS builder
 
 WORKDIR /build
 
@@ -10,7 +10,7 @@ COPY . .
 
 RUN go build -o ./app cmd/sky-controller/main.go
 
-FROM gcr.io/distroless/base-debian11
+FROM cgr.dev/chainguard/static
 
 COPY --from=builder /build/app /app
 
