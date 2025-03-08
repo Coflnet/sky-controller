@@ -148,7 +148,8 @@ func (p *ProxyScaler) updateDesiredReplicaCount(ctx context.Context) error {
 
 	nodeCount, err := p.listNodeCount(ctx)
 	if err != nil {
-		return err
+		log.Warn().Err(err).Msg("Failed to list nodes, using default value")
+		nodeCount = 6
 	}
 
 	// 3 masters, so -3
