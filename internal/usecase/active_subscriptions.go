@@ -97,7 +97,7 @@ func (w *ActiveSubscriptionsWatcher) updateProducts() error {
 func (w *ActiveSubscriptionsWatcher) update() error {
 
   // update all product slugs
-  // do up to 10 concurrent requests
+  // do up to 2 concurrent requests
   // wait for all requests to finish
 
   ctx, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
@@ -108,7 +108,7 @@ func (w *ActiveSubscriptionsWatcher) update() error {
   defer span.End()
 
 
-  sem := make(chan int, 10)
+  sem := make(chan int, 2)
   wg := sync.WaitGroup{}
   w.UsersPerSlug = sync.Map{}
 
